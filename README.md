@@ -1,1 +1,3 @@
-# vegapy
+# VEGAPy: A Virtual Exposure Generator for Astronomy in Python
+
+More to come...
