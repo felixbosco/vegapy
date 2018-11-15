@@ -6,6 +6,7 @@ This package is designed for creating realistic (short exposure) images, includi
 In principle, you just need to define instances of the three package intern classes for the science target (Target), the Telescope (Telescope) and the detector (Detector). The classes are explained in detail below, but also see the documentary strings in the class definitions.
 
 '''python
+
 import vegapy
 import astropy.units as u
 
