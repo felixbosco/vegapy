@@ -35,10 +35,18 @@ def generate_exposure(target, telescope, detector, DIT, number_frames=1, filenam
     if filename is None:
         filename = 'exposure.fits'
     if time_stamp == 'end':
-        generic, ext = filename.split('.')
-        filename = generic + '_' + _make_time_stamp() + '.' + ext
+        try:
+            generic, ext = filename.split('.')
+            filename = generic + '_' + _make_time_stamp() + '.' + ext
+        except ValueError as e:
+            path = filename
+            filename = filename.split('/')[-1]
+            generic, ext = filename.split('.')
+            filename = path.replace(filename, generic + '_' + _make_time_stamp() + '.' + ext)
     elif time_stamp == 'start':
         filename =  _make_time_stamp() + '_' + filename
+    elif time_stamp is None:
+        pass
 
 
     # Initialize fits header
@@ -55,12 +63,13 @@ def generate_exposure(target, telescope, detector, DIT, number_frames=1, filenam
         hdu.data = np.zeros(detector.shape)
     hdu.header.set('DIT', DIT.value, DIT.unit)
     _add_attributes_to_header(hdu, target, skip_attributes=['shape', 'data', 'stars'], object_name='TARGET')
-    _add_attributes_to_header(hdu, telescope, skip_attributes=[], object_name='TELESCOP')
+    _add_attributes_to_header(hdu, telescope, skip_attributes=['psf'], object_name='TELESCOP')
     _add_attributes_to_header(hdu, detector, skip_attributes=['shape', 'array'], object_name='DETECTOR')
+    hdu.header.set('DATE', str(datetime.now()))
 
 
     # Write header to one or more files, depending on 'number_frames' and 'maximum_number_frames_per_file'
-    if number_frames < maximum_number_frames_per_file:
+    if number_frames <= maximum_number_frames_per_file:
         multiple_files = False
         print("Writing file {}.".format(filename))
         hdu.writeto(filename, overwrite=True)

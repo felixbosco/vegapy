@@ -139,8 +139,20 @@ class Target(object):
 			self.data = np.maximum(self.data, flux_per_pixel)
 
 
-	def _generate_stars(self):
+	def _generate_stars(self, saveto='star_table_latest.dat'):
 		pass
+		pos_x = np.zeros((self.number_stars))
+		pos_y = np.zeros((self.number_stars))
+		mag = np.zeros((self.number_stars))
+		flux = np.zeros((self.number_stars))
+		star_table = Table([pos_x, pos_y, mag, flux], names=('pos_x', 'pos_y', 'mag', 'flux'))
+		for n in range(self.number_stars):
+			pass
+		try:
+			star_table.write(saveto, format='ascii')
+		except:
+			pass
+
 
 
 	def _read_star_table(self):
@@ -149,6 +161,9 @@ class Target(object):
 			position = (int(row['pos_x']), int(row['pos_y']))
 			try:
 				self.data[position] = np.maximum(self.data[position], row['flux'])
+			except KeyError as e:
+				flux = self._get_flux(row['mag'])
+				self.data[position] = np.maximum(self.data[position], flux)
 			except:
 				self.data[position] = np.maximum(self.data[position].value, row['flux']) * self.data.unit
 		#print(self.data)

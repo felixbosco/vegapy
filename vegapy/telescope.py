@@ -3,6 +3,7 @@ import sys
 import numpy as np
 import astropy.units as u
 from astropy.io import fits
+from astropy.modeling import models
 import warnings
 from scipy.signal import fftconvolve
 from scipy.ndimage import zoom
@@ -262,9 +263,13 @@ class Telescope(object):
 
 		shape = (size, size)
 		center = ((size + 1) / 2, (size + 1) / 2)
-		psf = np.zeros(shape)
-		for index, value in np.ndenumerate(psf):
-			psf[index] = self._gaussian_2d(index, center, fwhm/self.psf_resolution)
+		xdata, ydata = np.mgrid[ : shape[0], : shape[1]]
+		stddev = fwhm / self.psf_resolution / (2 * np.sqrt(2 * np.log(2)))
+		Gaussian = models.Gaussian2D(amplitude=1.0, x_mean=center[0], y_mean=center[1], x_stddev=stddev, y_stddev=stddev)
+		psf = Gaussian(xdata, ydata)
+		#psf = np.zeros(shape)
+		#for index, value in np.ndenumerate(psf):
+		#	psf[index] = self._gaussian_2d(index, center, fwhm/self.psf_resolution)
 		self.psf = self._normalize(psf)
 
 
