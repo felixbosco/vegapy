@@ -4,7 +4,7 @@ with open("README.md", "r") as f:
     long_description = f.read()
 
 setup(name='VEGAPy',
-      version='0.1.dev1',
+      version='0.0.2',
       description='A Python generator for synthetic astronomical exposures.',
       long_description=long_description,
       long_description_content_type="text/markdown",
@@ -23,5 +23,8 @@ setup(name='VEGAPy',
       install_requires=[
           'astropy',
       ],
+      package_data={
+        'vegapy': ['source/data/*.dat'],
+      },
       include_package_data=True,
       zip_safe=False)
