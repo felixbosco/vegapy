@@ -51,7 +51,7 @@ class Detector(object):
 
 	def __call__(self, photon_rate_density_array, integration_time, target_FoV, compute_photon_shot_noise=True):
 		self.expose(photon_rate_density_array, integration_time, target_FoV, compute_photon_shot_noise=compute_photon_shot_noise)
-		return self.readout()
+		return self.readout(integration_time=integration_time)
 
 
 	def __str__(self):
@@ -93,19 +93,20 @@ class Detector(object):
 		self.array = np.round(tmp)
 
 
-	def readout(self):
+	def readout(self, integration_time, reset=True):
         # Read copy and clear the array
 		tmp = self.array
 		if hasattr(self, 'dark_current'):
-			tmp += np.random.poisson(self.dark_current.value, self.shape) * self.dark_current.unit * u.pix
+			tmp += np.random.poisson(self.dark_current.value, self.shape) * self.dark_current.unit * u.pix * integration_time
 		if hasattr(self, 'readout_noise'):
 			tmp += np.round(np.random.normal(0.0, self.readout_noise.value, self.shape) ) * self.readout_noise.unit * u.pix
 		tmp /= self.system_gain
 		if hasattr(self, 'saturation_level'):
 			return np.minimum(tmp, self.saturation_level)
 		# Reset the detector
-		self.array = np.zeros(self.shape)
-		return tmp
+		if reset:
+			self.array = np.zeros(self.shape)
+		return tmp.decompose()
 
 
 	def window(self):

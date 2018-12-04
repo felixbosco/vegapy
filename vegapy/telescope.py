@@ -43,12 +43,15 @@ class Telescope(object):
 		else:
 			self.area = np.pi * (self.diameter / 2)**2
 
-		if psf_source == 'airy_model':
-			self.compute_airy_model()
-		elif psf_source == 'seeing':
-			self.compute_seeing_disk(kwargs)
+		if isinstance(psf_source, str):
+			if psf_source == 'airy_model':
+				self.compute_airy_model()
+			elif psf_source == 'seeing':
+				self.compute_seeing_disk(kwargs)
+			else:
+				self.read_psf_file(psf_source)
 		else:
-			self.read_psf_file(psf_source)
+			raise TypeError('psf_source must be str-type, but is given as {}'.format(type(psf_source)))
 
 
 	def __call__(self, flux_array, flux_array_resolution, integration_time=None, verbose=0, **kwargs):
@@ -78,6 +81,7 @@ class Telescope(object):
 			warnings.simplefilter('ignore')
 			if ratio < 1.0:
 				self.psf = zoom(self.psf, 1/ratio, order=1) / ratio**2
+				self.psf = self._normalize(self.psf)
 			else:
 				tmp = zoom(tmp, ratio, order=1) / ratio**2
 		if tmp.shape[0] > 2048+512 or self.psf.shape[0] > 512+256:
