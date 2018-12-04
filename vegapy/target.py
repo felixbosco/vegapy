@@ -67,6 +67,7 @@ class Target(object):
 			print(kwargs)
 			if not 'config_file' in kwargs:
 				raise ValueError("Target() requires exactly two out of the three keywords 'shape', 'FoV', and 'pixel_scale'.")
+		self.data = self.data * u.ph / u.m**2 / u.s
 		self.resolution = self.pixel_scale
 		self.band_reference_flux = self._get_reference_flux()
 
@@ -82,7 +83,7 @@ class Target(object):
 
 
 	def __call__(self):
-		return self.data
+		return self.data.decompose()
 
 
 	def __str__(self):
@@ -133,10 +134,15 @@ class Target(object):
 		else:
 			raise TypeError("Function 'Target._initialize_sky_background()' does not accept a magnitude of type {}.".format(type(self.sky_background)))
 		flux_per_pixel = (self.sky_background_flux * self.pixel_scale**2).decompose()
-		if isinstance(self.data, np.ndarray):
-			self.data = np.maximum(self.data, flux_per_pixel.value) * flux_per_pixel.unit
-		else:
-			self.data = np.maximum(self.data, flux_per_pixel)
+		# print(type(flux_per_pixel), type(self.data))
+		# print(flux_per_pixel.unit, self.data.unit)
+		# if isinstance(self.data, np.ndarray):
+		# 	self.data = np.maximum(self.data, flux_per_pixel.value) * flux_per_pixel.unit
+		# elif isinstance(self.data, u.quantity.Quantity):
+		# 	self.data = np.maximum(self.data, flux_per_pixel)
+		# else:
+		# 	self.data = np.maximum(self.data, flux_per_pixel)
+		self.data = np.maximum(self.data, flux_per_pixel)
 
 
 	def _generate_stars(self, saveto='star_table_latest.dat'):

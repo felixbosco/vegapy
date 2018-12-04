@@ -77,16 +77,24 @@ def generate_exposure(target, telescope, detector, DIT, number_frames=1, filenam
         multiple_files = True
         number_full_files = number_frames // maximum_number_frames_per_file
         number_leftover_frames = number_frames % maximum_number_frames_per_file
-        print("Writing {} files, where the last file contains only {} valid frames.".format(number_full_files + 1, number_leftover_frames))
+        if number_leftover_frames != 0:
+            print("Writing {} files, where the last file contains only {} valid frames.".format(number_full_files + 1, number_leftover_frames))
 
-        # Writing files with the maximum number of frames
-        for i in range(number_full_files):
-            hdu.header.set('NAXIS3', maximum_number_frames_per_file)
-            hdu.writeto(_make_filename(filename, i, add_index=multiple_files), overwrite=True)
+            # Writing files with the maximum number of frames
+            for i in range(number_full_files):
+                hdu.header.set('NAXIS3', maximum_number_frames_per_file)
+                hdu.writeto(_make_filename(filename, i, add_index=multiple_files), overwrite=True)
 
-        # The last file shall contain only fewer frames
-        hdu.header.set('NAXIS3', number_leftover_frames)
-        hdu.writeto(_make_filename(filename, i+1, add_index=multiple_files), overwrite=True)
+            # The last file shall contain only fewer frames
+            hdu.header.set('NAXIS3', number_leftover_frames)
+            hdu.writeto(_make_filename(filename, i+1, add_index=multiple_files), overwrite=True)
+        else:
+            print("Writing {} files.".format(number_full_files))
+
+            # Writing files with the maximum number of frames
+            for i in range(number_full_files):
+                hdu.header.set('NAXIS3', maximum_number_frames_per_file)
+                hdu.writeto(_make_filename(filename, i, add_index=multiple_files), overwrite=True)
 
 
 
@@ -103,6 +111,7 @@ def generate_exposure(target, telescope, detector, DIT, number_frames=1, filenam
         print("\rExposure {:4}/{:4}".format(dt+1, number_frames), end='')
         imaged = telescope(target.data, target.resolution, integration_time=DIT, verbose=verbose)
         detected = detector(photon_rate_density_array=imaged, integration_time=DIT, target_FoV=target.FoV)
+        detected = detected.decompose()
         # Write file
         with fits.open(_make_filename(filename, dt // maximum_number_frames_per_file, add_index=multiple_files), mode='update') as hdulist:
             if number_frames == 1:
@@ -174,10 +183,3 @@ def _make_filename(filename, index, add_index):
         return "{}_{}.{}".format(generic, index, extension)
     else:
         return filename
-
-# def _expected_file_size(hdu_object, pixel_space='32byte'):
-#     tmp = 1
-#     for axis in range(hdu_object.header['NAXIS']):
-#         key = 'NAXIS{}'.format(int(axis) + 1)
-#         tmp *=  hdu_object.header[key]
-#     return (tmp * u.Quantity(pixel_space)).to(u.Mbyte)

@@ -83,7 +83,9 @@ class Telescope(object):
 				self.psf = zoom(self.psf, 1/ratio, order=1) / ratio**2
 				self.psf = self._normalize(self.psf)
 			else:
+				memory_sum = np.sum(tmp)
 				tmp = zoom(tmp, ratio, order=1) / ratio**2
+				tmp = tmp / np.sum(tmp) * memory_sum
 		if tmp.shape[0] > 2048+512 or self.psf.shape[0] > 512+256:
 			print('With these sizes (image: {} and PSF: {}), the computation will be very expensive. It is suggested to adapt the resolution of the objects.'.format(tmp.shape, self.psf.shape))
 			user_input = raw_input('Do you still want to continue? [Y/N]')
@@ -96,7 +98,7 @@ class Telescope(object):
 			print('Check of flux conservation during convolution:')
 			print('Before: ', total_flux)
 			print('After:  ', np.sum(convolved))
-		return convolved
+		return convolved.decompose()
 
 
 	def __str__(self):
