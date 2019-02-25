@@ -12,8 +12,8 @@ PATH, FILE = os.path.split(__file__)
 SOURCE_PATH = os.path.join(PATH, '../source/')
 print('>>> TEST: {}'.format(FILE))
 
-target = vegapy.Target(band='H', FoV=11*u.arcsec*2, shape=(1024, 1024), star_table=SOURCE_PATH+'example/smalltarget4_stars.dat', sky_background=14.4)
-telescope = vegapy.Telescope(8.2*u.m, central_obscuration=0.14, name="VLT Unit Telescope", psf_source=SOURCE_PATH+'../../../simulations/noao_psf_2ms_20sec.fits')
+target = vegapy.Target(band='H', FoV=11*u.arcsec*2, shape=(1024, 1024), star_table=SOURCE_PATH+'example/star_table_example.dat', sky_background=14.4)
+telescope = vegapy.Telescope(8.2*u.m, central_obscuration=0.14, name="VLT Unit Telescope", psf_source=SOURCE_PATH+'example/seeing_2ms_shortexposures.fits')
 detector = vegapy.Detector((1024, 1024),
 						pixel_size=0.0106*u.arcsec,
 						readout_noise=35*u.electron/u.pix,

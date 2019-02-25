@@ -19,7 +19,7 @@ print(">>> TEST TARGET> tar1")
 tar = vegapy.Target(band='H', pixel_scale=0.1*u.arcsec, shape=(64, 64), sky_background=13)
 
 print(">>> TEST TARGET> tar2")
-tar2 = vegapy.Target(band='H', pixel_scale=0.1*u.arcsec, FoV=(2*u.arcmin, 2*u.arcmin), star_table=SOURCE_PATH+'example/smalltarget4_stars.dat', sky_background=14)
+tar2 = vegapy.Target(band='H', pixel_scale=0.1*u.arcsec, FoV=(2*u.arcmin, 2*u.arcmin), star_table=SOURCE_PATH+'example/star_table_example.dat')#, sky_background=14)
 if verbose > 0:
 	print(tar2.shape)
 if visual > 0:
@@ -30,6 +30,8 @@ if visual > 0:
 
 print(">>> TEST TARGET> tar3")
 tar3 = vegapy.Target(band='H', FoV=(2*u.arcmin, 2*u.arcmin), shape=(64, 64), sky_background=13)
+
+
 
 
 
