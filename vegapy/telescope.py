@@ -88,7 +88,7 @@ class Telescope(object):
 				tmp = tmp / np.sum(tmp) * memory_sum
 		if tmp.shape[0] > 2048+512 or self.psf.shape[0] > 512+256:
 			print('With these sizes (image: {} and PSF: {}), the computation will be very expensive. It is suggested to adapt the resolution of the objects.'.format(tmp.shape, self.psf.shape))
-			user_input = raw_input('Do you still want to continue? [Y/N]')
+			user_input = input('Do you still want to continue? [Y/N]')
 			if user_input in ['Y', 'y', 'Yes', 'yes']:
 				pass
 			else:
@@ -194,27 +194,25 @@ class Telescope(object):
 	    return np.sqrt(np.square(index[0]-reference[0]) + np.square(index[1]-reference[1]))
 
 
-	def compute_airy_model(self, size=256, wavelength=None):
-		"""Not implemented properly yet."""
-		raise NameError("Function 'compute_airy_model()' is not implemented yet.")
-		physical_size = self.diameter#8.2*u.m
-		#central_obscuration = 1.0*u.m
-
-		shape = (size, size)
-		radius = size / 2
-		center = (radius, radius)
-		pixel_scale = physical_size / size
-		array = np.ones(shape=shape)
-		mask = np.zeros(shape=shape, dtype=bool)
-
-		for index, value in np.ndenumerate(mask):
-		    if self._distance(index, center) > radius or self._distance(index, center) < radius * self.central_obscuration:
-		        mask[index] = 1
-
-		aperture = np.ma.masked_array(array, mask=mask)
-		psf = np.square(np.abs(np.fft.fftshift(np.fft.fft2(aperture))))
-		#self.psf = psf
-		#self.psf_resolution = pixel_scale
+	def compute_airy_model(self, size=256, wavelength=None, first_zero_radius=4):
+		"""
+		compute_airy_model() computes a diffraction limited PSF, based on an
+		Airy model on grid with shape = (size, size). The corresponding pixel
+		scale (the psf_resolution) is computed radius of the first zero
+		(first_zero_radius=12, in pix), the telescope diameter and a wavelength.
+		Therefore, please provide the telescope instance with a wavelength
+		attribute.
+		"""
+		if wavelength is None:
+			try:
+				wavelength = self.wavelength
+			except:
+				wavelength = 1*u.micron
+		center = int(size / 2)
+		Airy = models.AiryDisk2D(amplitude=1e6, x_0=center, y_0=center, radius=first_zero_radius)
+		xdata, ydata = np.meshgrid(np.arange(0, size), np.arange(0, size))
+		self.psf = self._normalize(Airy(xdata, ydata))
+		self.psf_resolution = 1.2196698912665045 * np.arctan(wavelength / self.diameter).to(u.mas) / first_zero_radius
 
 
 	def _gaussian_2d(self, index, center, fwhm, amplitude=1):

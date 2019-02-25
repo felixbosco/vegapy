@@ -79,7 +79,10 @@ class Target(object):
 		if hasattr(self, 'number_stars'):
 			self._generate_stars()
 		if hasattr(self, 'star_table'):
-			self._read_star_table()
+			if hasattr(self, 'flux_unit'):
+				self._read_star_table(self.flux_unit)
+			else:
+				self._read_star_table()
 
 
 	def __call__(self):
@@ -160,13 +163,28 @@ class Target(object):
 			pass
 
 
+	def _to_map_unit(self, unit, filename=SOURCE_PATH+'photometric_bands.dat', format='ascii'):
+		print('Interpreting flux values in units of {}. To change this, please provide a star_table_dict={"flux_unit": "desired unit"}.'.format(unit))
+		if isinstance(unit, str):
+			unit = u.Unit(unit)
+		try:
+			tmp =  unit.to(self.data.unit)
+		except UnitConversionError as e:
+			table = Table.read(filename, format=format)
+			row_index = np.where(table["Band"] == self.band)
+			fwhm = table['FWHM'][row_index][0]
+			wavelength = table['Wavelength'][row_index][0] * u.micron
+			tmp = (unit / const.h * u.ph * fwhm * wavelength).decompose()
+			tmp = unit.to(self.data.unit)
+		return tmp
 
-	def _read_star_table(self):
+
+	def _read_star_table(self, keyword_x='pos_x', keyword_y='pos_y', keyword_flux='flux'):
 		self.stars = Table.read(self.star_table, format='ascii')
 		for row in self.stars:
-			position = (int(row['pos_x']), int(row['pos_y']))
+			position = (int(row[keyword_x]), int(row[keyword_y]))
 			try:
-				self.data[position] = np.maximum(self.data[position], row['flux'])
+				self.data[position] = np.maximum(self.data[position], row[keyword_flux])
 			except KeyError as e:
 				flux = self._get_flux(row['mag'])
 				self.data[position] = np.maximum(self.data[position], flux)
