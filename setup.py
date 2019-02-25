@@ -4,7 +4,7 @@ with open("README.md", "r") as f:
     long_description = f.read()
 
 setup(name='VEGAPy',
-      version='0.0.2',
+      version='0.0.4',
       description='A Python generator for synthetic astronomical exposures.',
       long_description=long_description,
       long_description_content_type="text/markdown",
