@@ -144,7 +144,7 @@ def _make_time_stamp():
     tmp = tmp.replace(':', '')
     return tmp
 
-def _add_attributes_to_header(hdu_object, object, skip_attributes=[], prefix='HIERARCH ', object_name='New object'):
+def _add_attributes_to_header(hdu_object, object, skip_attributes=[], prefix='HIERARCH VEGAPY ', object_name='New object'):
     """
     The helper function _add_attributes_to_header() formats the attributes of
     the argument object into appropriate FITS header cards.
@@ -154,28 +154,28 @@ def _add_attributes_to_header(hdu_object, object, skip_attributes=[], prefix='HI
     as long as prefix is set to 'HIERARCH '.
     """
     dict = object.__dict__
-    hdu_object.header.set(object_name, '')
+    #hdu_object.header.set(object_name, '')
     for key in dict:
         # Ability to skip for instance arrays
         if key in skip_attributes:
             continue
         # Appending the unit of a u.Quantity to the comment
         if isinstance(dict[key], u.Quantity):
-            hdu_object.header.set(prefix + key, dict[key].value, dict[key].unit)
+            hdu_object.header.set(prefix + object_name + ' ' + key, dict[key].value, dict[key].unit)
         # Suppress (long) relative paths
         elif isinstance(dict[key], str):
             if len(dict[key]) > 20:
                 path, file = os.path.split(dict[key])
-                hdu_object.header.set(prefix + key, file)
+                hdu_object.header.set(prefix + object_name + ' ' + key, file)
             else:
-                hdu_object.header.set(prefix + key, dict[key])
+                hdu_object.header.set(prefix + object_name + ' ' + key, dict[key])
         # Separating tuple attributes into two header cards
         elif isinstance(dict[key], tuple):
-            hdu_object.header.set(prefix + key + '[0]', dict[key][0].value, dict[key][0].unit)
-            hdu_object.header.set(prefix + key + '[1]', dict[key][1].value, dict[key][1].unit)
+            hdu_object.header.set(prefix + object_name + ' ' + key + '[0]', dict[key][0].value, dict[key][0].unit)
+            hdu_object.header.set(prefix + object_name + ' ' + key + '[1]', dict[key][1].value, dict[key][1].unit)
         # Add all other types
         else:
-            hdu_object.header.set(prefix + key, dict[key])
+            hdu_object.header.set(prefix + object_name + ' ' + key, dict[key])
 
 def _make_filename(filename, index, add_index):
     if add_index:
